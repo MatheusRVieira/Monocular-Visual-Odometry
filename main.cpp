@@ -1,3 +1,6 @@
+// convert ground truth to IMU? https://stackoverflow.com/questions/60639665/visual-odometry-kitti-dataset
+// this also can be useful: https://stackoverflow.com/questions/55756530/format-of-kitti-poses-dataset-poses-and-how-re-create-using-imu
+
 #include <ctype.h>
 #include <algorithm>
 #include <iterator>
@@ -44,10 +47,10 @@ vector<Point2f> getGreyCamGroundPoses() {
     {
       Point2f pose;
       std::istringstream in(line);
-      for (int j=0; j<12; j++)  {
-        in >> value;
-        if (j==11) pose.y=value;
-        if (j==3) pose.x=value;
+      for (int j=0; j<12; j++)  { //cada linha tem 12 elementos
+        in >> value; // armazena em value o valor de in. (Stream a number till white space is encountered)
+        if (j==11) pose.y=value; // store what is supposed to be tz. why? idk
+        if (j==3) pose.x=value; //store tx. why? idk
       }
 
       poses.push_back(pose);
@@ -78,12 +81,12 @@ vector<double> getAbsoluteScales()	{
       std::istringstream in(line);
       //cout << line << '\n';
       for (int j=0; j<12; j++)  {
-        in >> z ;
-        if (j==7) y=z;
-        if (j==3)  x=z;
+        in >> z ; //z recebe cada um dos 12 elementos do frame (linha) atual
+        if (j==7) y=z; //se ty, y = ty
+        if (j==3)  x=z; //se tx, x = tx
       }
-
-      scales.push_back(sqrt((x-x_prev)*(x-x_prev) + (y-y_prev)*(y-y_prev) + (z-z_prev)*(z-z_prev)));
+      // z = tz
+      scales.push_back(sqrt((x-x_prev)*(x-x_prev) + (y-y_prev)*(y-y_prev) + (z-z_prev)*(z-z_prev))); // raiz quadrada da soma do deslocamento em cada um dos três eixos ao quadrado
     }
     myfile.close();
   }
@@ -194,7 +197,7 @@ int main(int argc, char** argv) {
    *     0.000000000000e+00 0.000000000000e+00 1.000000000000e+00  0.000000000000e+00
    */
   double focal = 718.856; //focal lenght
-  cv::Point2d pp(620.5, 188); // pp is principal points from the camera. a imagem eh 1241x376
+  cv::Point2d pp(607.1928, 185.2157); // pp is principal points from the camera. a imagem eh 1241x376
 
   //recovering the pose and the essential matrix
   Mat E, R, t, mask;
@@ -207,6 +210,8 @@ int main(int argc, char** argv) {
   E = findEssentialMat(points2, points1, focal, pp, cv::RANSAC, 0.999, 1.0, mask);
   //Recovers the relative camera rotation and the translation from an estimated essential matrix and the corresponding points in two images, 
   //using cheirality check. Returns the number of inliers that pass the check. 
+  //provides R(output rotation matrix), t(output translation vector)
+  //mask is input/output: Only these inliers will be used to recover pose. In the output mask only inliers which pass the cheirality check.
   recoverPose(E, points2, points1, R, t, focal, pp, mask);
 
 
@@ -224,16 +229,18 @@ int main(int argc, char** argv) {
 
   cv::namedWindow( "Road facing camera | Top Down Trajectory", cv::WINDOW_NORMAL );// Create a window for display.
   cv::resizeWindow("Road facing camera | Top Down Trajectory", 600,600);
-  Mat traj = Mat::zeros(600, 1241, CV_8UC3);
+  // create a matrix 600x1241 of zeros
+  Mat traj = Mat::zeros(600, 1241, CV_8UC3); // CV_8UC3: 8-bit unsigned integer matrix with 3 channels, in other words, RGB
 
-  auto groundPoses = getGreyCamGroundPoses();
-  auto groundScales = getAbsoluteScales();
+  auto groundPoses = getGreyCamGroundPoses(); //groundPoses eh um vetor 2d que recebe a translação em x e z entre cada frame
+  auto groundScales = getAbsoluteScales(); //groundScales em um vetor com o deslocamento absoluto entre cada frame
 
+  // aqui começa de fato o loop
   for(int numFrame=2; numFrame < MAX_FRAME; numFrame++) {
-    sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame);
+    sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
 
-
-    Mat currImage_c = cv::imread(filename);
+    // repete-se o mesmo processo anterior
+    Mat currImage_c = cv::imread(filename); 
     cvtColor(currImage_c, currImage, cv::COLOR_BGR2GRAY);
     vector<uchar> status;
     featureTracking(prevImage, currImage, prevFeatures, currFeatures, status);
@@ -241,6 +248,7 @@ int main(int argc, char** argv) {
     E = findEssentialMat(currFeatures, prevFeatures, focal, pp, cv::RANSAC, 0.999, 1.0, mask);
     recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
 
+    // aqui ja muda. prevPts eh uma matrix 2 x prevFeatures do tipo 64-bits float 
     Mat prevPts(2, prevFeatures.size(), CV_64F), currPts(2, currFeatures.size(), CV_64F);
 
 
@@ -272,12 +280,16 @@ int main(int argc, char** argv) {
     prevImage = currImage.clone();
     prevFeatures = currFeatures;
 
-    int x = int(t_f.at<double>(0)) + 600;
+    int x = int(t_f.at<double>(0)) + 600; //coordenadas do ponto inicial x e y na visualização
     int y = int(t_f.at<double>(2)) + 100;
 
-    circle(traj, cv::Point(x, y), 1, CV_RGB(255, 0, 0), 2);
-    circle(traj, cv::Point(groundPoses[numFrame].x+600, groundPoses[numFrame].y+100), 1, CV_RGB(0, 255, 0), 2);
+    //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
+    //cor vermelha, com thickness 2
+    circle(traj, cv::Point(x, y), 1, CV_RGB(255, 0, 0), 2); // traj eh a matriz de zeros que vai ser recebido o desenho
+    //em azul, desenhamos a translação estimada em cada frame
+    circle(traj, cv::Point(groundPoses[numFrame].x+600, groundPoses[numFrame].y+100), 1, CV_RGB(0, 0, 255), 2);
 
+    //aqui expressamos as coordendas da translação em x, y e z
     rectangle(traj, cv::Point(10, 30), cv::Point(550, 50), CV_RGB(0, 0, 0), cv::FILLED);
     sprintf(text, "Coordinates: x = %02fm y = %02fm z = %02fm", t_f.at<double>(0), t_f.at<double>(1),t_f.at<double>(2));
     putText(traj, text, textOrg, fontFace, fontScale, cv::Scalar::all(255), thickness, 8);
@@ -290,7 +302,8 @@ int main(int argc, char** argv) {
 
     Mat concated;
 
-    cv::vconcat(currImage_c, traj, concated);
+    cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
+    //precisa ser o mesmo
 
     imshow("Road facing camera | Top Down Trajectory", concated);
 
