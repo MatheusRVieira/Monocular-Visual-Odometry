@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/matheus-ubuntu/Desktop/monocular-visual-odometry/main.cpp" "/home/matheus-ubuntu/Desktop/monocular-visual-odometry/build/CMakeFiles/mono_vo.dir/main.cpp.o"
+  "/home/matheus-ubuntu/Desktop/mono_vo/main.cpp" "/home/matheus-ubuntu/Desktop/mono_vo/build/CMakeFiles/mono_vo.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

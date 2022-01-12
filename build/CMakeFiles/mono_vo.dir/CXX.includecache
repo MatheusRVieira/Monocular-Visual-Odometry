@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/matheus-ubuntu/Desktop/monocular-visual-odometry/main.cpp
+/home/matheus-ubuntu/Desktop/mono_vo/main.cpp
 ctype.h
 -
 algorithm

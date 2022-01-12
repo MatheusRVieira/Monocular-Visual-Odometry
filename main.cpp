@@ -96,12 +96,22 @@ vector<double> getAbsoluteScales()	{
 
    vector<float> err;
    Size winSize(21,21);
+   //condição de parada de uma função iterativa. termcrit(tipo de criterio, maxCount, epsilon)
+   //tipo de criterio: COUNT: maximo numero de iterações e EPS: acuracia desejada
    TermCriteria termcrit(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01);
 
+   // calcula o fluxo otico para os pontos selecionados (keyframes). points2 armazena a nova posição dos pontos na imagem 2
+   //status é um array. se o ponto foi localizado na 2a imagem, seta 1. 0, caso contrario
+   //array err: cada ponto encontrado na 2a imagem eh associado a um respectivo erro. Se o ponto não foi achado, erro não é definido
+   //winsize: define tamanho da janela de procura
+   // 3 eh o max level: são utilizados no maximo 4 niveis de piramide
+   // 0.001: se o mínimo autovalor do fluxo de um ponto dividido pelo numero de pixels em uma image é menor que 0.001, então o ponto
+   // correspondente eh descartado -> bad points removed    
    calcOpticalFlowPyrLK(img_1, img_2, points1, points2, status, err, winSize, 3, termcrit, 0, 0.001);
 
    //getting rid of points for which the KLT tracking failed or those who have gone outside the frame
    int indexCorrection = 0;
+   //a função abaixo elimina do vetor os pontos não correspondidos na imagem 2.
    for( int i=0; i<status.size(); i++)
    {
      Point2f pt = points2.at(i- indexCorrection);
@@ -117,10 +127,10 @@ vector<double> getAbsoluteScales()	{
    }
  }
 
- void featureDetection(Mat img, vector<Point2f> & points){
-  vector<KeyPoint> keypoints;
-  int fast_threshold = 20;
-  bool nonmaxSupression = true;
+ void featureDetection(Mat img, vector<Point2f> & points){ //retorna keypoints como vetor de inteiros
+  vector<KeyPoint> keypoints; //keypoints detected on the image.
+  int fast_threshold = 20; //threshold on difference between intensity of the central pixel and pixels of a circle around this pixel.
+  bool nonmaxSupression = true; 
 
   cv::FAST(img, keypoints, fast_threshold, nonmaxSupression);
   KeyPoint::convert(keypoints, points, vector<int>());
@@ -141,9 +151,10 @@ int main(int argc, char** argv) {
   double scale = 1.00;
   char filename1[200];
   char filename2[200];
-  sprintf(filename1, "%s/%06d.png", dataset_images_location, 0);
-  sprintf(filename2, "%s/%06d.png", dataset_images_location, 1);
-
+  sprintf(filename1, "%s/%06d.png", dataset_images_location, 0);  //fornece o caminho completo pra primeira imagem: .../000000.png
+  //cout<<"teste: "<<filename1<<endl;
+  sprintf(filename2, "%s/%06d.png", dataset_images_location, 1);  //fornece o caminho completo pra segunda imagem: .../000001.png
+  //cout<<"teste2: "<<filename2<<endl;
 
   char text[100];
   int fontFace = cv::FONT_HERSHEY_PLAIN;
@@ -152,7 +163,8 @@ int main(int argc, char** argv) {
   cv::Point textOrg(10, 50);
 
   //read the first two frames from the dataset
-  Mat img_1_c = cv::imread(filename1);
+  Mat img_1_c = cv::imread(filename1);                          //fornece matriz com as intensidades dos pixel em RGB(?)
+  //cout<<"teste: "<<img_1_c<<endl;     
   Mat img_2_c = cv::imread(filename2);
 
   if ( !img_1_c.data || !img_2_c.data ) {
@@ -165,9 +177,12 @@ int main(int argc, char** argv) {
 
   // feature detection, tracking
   vector<Point2f> points1, points2;        //vectors to store the coordinates of the feature points
-  featureDetection(img_1, points1);        //detect features in img_1
+  featureDetection(img_1, points1);        //detect features in img_1 e retorna keypoints como vetor de inteiros em points1
+  //cout<<"teste: "<<points1<<endl;
   vector<uchar> status;
   featureTracking(img_1,img_2,points1,points2, status); //track those features to img_2
+  //em points2 esta armazenados as posições dos pontos que possuem correspondencia com a imagem 1. apenas os pontos com boa performance
+
 
   //TODO: add a fucntion to load these values directly from KITTI's calib files
   // WARNING: different sequences in the KITTI VO dataset have different intrinsic/extrinsic parameters
@@ -178,12 +193,20 @@ int main(int argc, char** argv) {
    *     0.000000000000e+00 7.188560000000e+02 1.852157000000e+02  0.000000000000e+00
    *     0.000000000000e+00 0.000000000000e+00 1.000000000000e+00  0.000000000000e+00
    */
-  double focal = 718.8560;
-  cv::Point2d pp(607.1928, 185.2157);
+  double focal = 718.856; //focal lenght
+  cv::Point2d pp(620.5, 188); // pp is principal points from the camera. a imagem eh 1241x376
 
   //recovering the pose and the essential matrix
   Mat E, R, t, mask;
+  //calcula a matriz essencial(essential for calibrated cameras and fundamental for uncalibrated cameras) dos pontos correspondentes em 2 imagens
+  // RANSAC eh o metodo para calcular a matriz fundamental
+  //nivel de confiança: 0.999
+  // 1.0 eh o threshold: Parameter used for RANSAC. It is the maximum distance from a point to an epipolar line in pixels, 
+  //beyond which the point is considered an outlier and is not used for computing the final fundamental matrix.  
+  // mask: array com os N points. 0 para outliers e 1 para 'other points'
   E = findEssentialMat(points2, points1, focal, pp, cv::RANSAC, 0.999, 1.0, mask);
+  //Recovers the relative camera rotation and the translation from an estimated essential matrix and the corresponding points in two images, 
+  //using cheirality check. Returns the number of inliers that pass the check. 
   recoverPose(E, points2, points1, R, t, focal, pp, mask);
 
 
@@ -199,8 +222,8 @@ int main(int argc, char** argv) {
 
   clock_t begin = clock();
 
-  cv::namedWindow( "Road facing camera | Top Down Trajectory", cv::WINDOW_AUTOSIZE );// Create a window for display.
-
+  cv::namedWindow( "Road facing camera | Top Down Trajectory", cv::WINDOW_NORMAL );// Create a window for display.
+  cv::resizeWindow("Road facing camera | Top Down Trajectory", 600,600);
   Mat traj = Mat::zeros(600, 1241, CV_8UC3);
 
   auto groundPoses = getGreyCamGroundPoses();
@@ -266,6 +289,7 @@ int main(int argc, char** argv) {
     }
 
     Mat concated;
+
     cv::vconcat(currImage_c, traj, concated);
 
     imshow("Road facing camera | Top Down Trajectory", concated);
