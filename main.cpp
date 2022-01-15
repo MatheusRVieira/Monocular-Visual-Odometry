@@ -1,6 +1,6 @@
 // convert ground truth to IMU? https://stackoverflow.com/questions/60639665/visual-odometry-kitti-dataset
 // this also can be useful: https://stackoverflow.com/questions/55756530/format-of-kitti-poses-dataset-poses-and-how-re-create-using-imu
-
+//rename files https://ostechnix.com/how-to-rename-multiple-files-at-once-in-linux/
 #include <ctype.h>
 #include <algorithm>
 #include <iterator>
@@ -28,11 +28,12 @@
  using cv::Size;
  using cv::TermCriteria;
 
-#define MAX_FRAME 2000
+#define MAX_FRAME 7000
 #define MIN_NUM_FEAT 2000
 
-const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
-const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/00.txt";
+//const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/oficial3";
+const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
 vector<Point2f> getGreyCamGroundPoses() {
@@ -154,9 +155,9 @@ int main(int argc, char** argv) {
   double scale = 1.00;
   char filename1[200];
   char filename2[200];
-  sprintf(filename1, "%s/%06d.png", dataset_images_location, 0);  //fornece o caminho completo pra primeira imagem: .../000000.png
+  sprintf(filename1, "%s/%06d.png", dataset_images_location, 1);  //fornece o caminho completo pra primeira imagem: .../000000.png
   //cout<<"teste: "<<filename1<<endl;
-  sprintf(filename2, "%s/%06d.png", dataset_images_location, 1);  //fornece o caminho completo pra segunda imagem: .../000001.png
+  sprintf(filename2, "%s/%06d.png", dataset_images_location, 2);  //fornece o caminho completo pra segunda imagem: .../000001.png
   //cout<<"teste2: "<<filename2<<endl;
 
   char text[100];
@@ -176,8 +177,9 @@ int main(int argc, char** argv) {
 
   // we work with grayscale images
   cvtColor(img_1_c, img_1, cv::COLOR_BGR2GRAY);
+  //cv::imwrite(filename1, img_1);
   cvtColor(img_2_c, img_2, cv::COLOR_BGR2GRAY);
-
+  //cv::imwrite(filename2, img_2);
   // feature detection, tracking
   vector<Point2f> points1, points2;        //vectors to store the coordinates of the feature points
   featureDetection(img_1, points1);        //detect features in img_1 e retorna keypoints como vetor de inteiros em points1
@@ -196,8 +198,12 @@ int main(int argc, char** argv) {
    *     0.000000000000e+00 7.188560000000e+02 1.852157000000e+02  0.000000000000e+00
    *     0.000000000000e+00 0.000000000000e+00 1.000000000000e+00  0.000000000000e+00
    */
-  double focal = 718.856; //focal lenght
-  cv::Point2d pp(607.1928, 185.2157); // pp is principal points from the camera. a imagem eh 1241x376
+  //double focal = 718.856; //focal lenght
+  //cv::Point2d pp(607.1928, 185.2157); // pp is principal points from the camera. a imagem eh 1241x376
+  //double focal = 1081.2352934517869; //redmi9
+  //cv::Point2d pp(639.5, 359.5); //redmi9
+  double focal = 1220.0899121457219; //iphone
+  cv::Point2d pp(639.5, 359.5); //1280x720 eh a imagem minha
 
   //recovering the pose and the essential matrix
   Mat E, R, t, mask;
@@ -228,29 +234,31 @@ int main(int argc, char** argv) {
   clock_t begin = clock();
 
   cv::namedWindow( "Road facing camera | Top Down Trajectory", cv::WINDOW_NORMAL );// Create a window for display.
-  cv::resizeWindow("Road facing camera | Top Down Trajectory", 600,600);
+  cv::resizeWindow("Road facing camera | Top Down Trajectory", 600,600); //Serve para poder ajustar o tamanho da visualização
   // create a matrix 600x1241 of zeros
-  Mat traj = Mat::zeros(600, 1241, CV_8UC3); // CV_8UC3: 8-bit unsigned integer matrix with 3 channels, in other words, RGB
-
+  //Mat traj = Mat::zeros(600, 1241, CV_8UC3); // CV_8UC3: 8-bit unsigned integer matrix with 3 channels, in other words, RGB
+  Mat traj = Mat::zeros(600, 1280, CV_8UC3); //redmi9
   auto groundPoses = getGreyCamGroundPoses(); //groundPoses eh um vetor 2d que recebe a translação em x e z entre cada frame
   auto groundScales = getAbsoluteScales(); //groundScales em um vetor com o deslocamento absoluto entre cada frame
 
   // aqui começa de fato o loop
-  for(int numFrame=2; numFrame < MAX_FRAME; numFrame++) {
+  for(int numFrame=3; numFrame < MAX_FRAME; numFrame++) {
+    //cout<<numFrame<<endl; 
     sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
-
     // repete-se o mesmo processo anterior
     Mat currImage_c = cv::imread(filename); 
+    if (currImage_c.empty()) continue;
     cvtColor(currImage_c, currImage, cv::COLOR_BGR2GRAY);
+    //cv::imwrite(filename, currImage);
+    //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
     vector<uchar> status;
     featureTracking(prevImage, currImage, prevFeatures, currFeatures, status);
-
     E = findEssentialMat(currFeatures, prevFeatures, focal, pp, cv::RANSAC, 0.999, 1.0, mask);
+    //if ( ! E.isContinuous() ) continue; //Error terminate called after throwing an instance of 'cv::Exception' what():  OpenCV(4.5.5-dev) /home/matheus-ubuntu/opencv_build/opencv/modules/core/src/matrix.cpp:1175: error: (-13:Image step is wrong) The matrix is not continuous, thus its number of rows can not be changed in function 'reshape'
+    
     recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
-
     // aqui ja muda. prevPts eh uma matrix 2 x prevFeatures do tipo 64-bits float 
     Mat prevPts(2, prevFeatures.size(), CV_64F), currPts(2, currFeatures.size(), CV_64F);
-
 
     for (int i = 0; i < prevFeatures.size(); i++) {   //this (x,y) combination makes sense as observed from the source code of triangulatePoints on GitHub
       prevPts.at<double>(0, i) = prevFeatures.at(i).x;
@@ -264,12 +272,12 @@ int main(int argc, char** argv) {
     scale = groundScales[numFrame];
 
     //only update the current R and t if it makes sense.
-    if ((scale > 0.1) && (t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1))) {
-
-      t_f = t_f + scale * (R_f * t);
+    //if ((scale > 0.1) && (t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1))) {
+    scale =1;
+      t_f = t_f + (R_f * t);
       R_f = R * R_f;
 
-    }
+    //}
 
     //Make sure we have enough features to track
     if (prevFeatures.size() < MIN_NUM_FEAT) {
@@ -280,14 +288,14 @@ int main(int argc, char** argv) {
     prevImage = currImage.clone();
     prevFeatures = currFeatures;
 
-    int x = int(t_f.at<double>(0)) + 600; //coordenadas do ponto inicial x e y na visualização
-    int y = int(t_f.at<double>(2)) + 100;
-
+    int x = int(t_f.at<double>(0)) + 500; //coordenadas do ponto inicial x e y na visualização
+    int y = int(t_f.at<double>(2)) +200;
+    //cout<<"x: "<<x<<" e y: "<<y<<endl;
     //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
     //cor vermelha, com thickness 2
     circle(traj, cv::Point(x, y), 1, CV_RGB(255, 0, 0), 2); // traj eh a matriz de zeros que vai ser recebido o desenho
-    //em azul, desenhamos a translação estimada em cada frame
-    circle(traj, cv::Point(groundPoses[numFrame].x+600, groundPoses[numFrame].y+100), 1, CV_RGB(0, 0, 255), 2);
+    //em azul, desenhamos o ground truth
+    //circle(traj, cv::Point(groundPoses[numFrame].x+200, groundPoses[numFrame].y+100), 1, CV_RGB(0, 0, 255), 2);
 
     //aqui expressamos as coordendas da translação em x, y e z
     rectangle(traj, cv::Point(10, 30), cv::Point(550, 50), CV_RGB(0, 0, 0), cv::FILLED);
@@ -301,12 +309,13 @@ int main(int argc, char** argv) {
     }
 
     Mat concated;
-
+    //cout<<"currImage_c: "<<currImage_c.size()<<endl;
+    //cout<<"traj: "<<traj.size()<<endl;
+    //cout<<"concated: "<<currImage_c.size()<<endl;
+    //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
     cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
     //precisa ser o mesmo
-
     imshow("Road facing camera | Top Down Trajectory", concated);
-
     cv::waitKey(1);
   }
 

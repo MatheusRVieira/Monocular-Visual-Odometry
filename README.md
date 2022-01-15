@@ -62,3 +62,32 @@ To see the FAST features visualized
 
 ## Credit
 Major S/O to a blog http://avisingh599.github.io/vision/monocular-vo/ that gave the inspiration and a good starting point. Go read his blog to get a better understanding of the basics. :)
+
+## how to rename multiple files (a is the old prefix to be replaced, b is the new replacement)
+$ mmv a\* b\#1
+
+## video to a image sequence
+install ffmpeg
+$ ffmpeg -i video.mp4 -vf fps=30 %06d.png
+
+## video .mov to .mp4
+$ ffmpeg -i video.MOV -qscale 0 output.mp4
+
+## change video resolution keeping quality
+$ ffmpeg -i input.mp4 -vf scale=1280:720 -preset slow -crf 18 output.mp4
+
+## crop video resolution (quero tirar 180 pixels tanto do top e do bottom e manter o centro. Assim 1280 x 720 -> 1280 x 360)
+$ ffmpeg -i video.MOV -filter_complex "[0:v]crop=1280:720-2*180[cropped]" -map "[cropped]" video_cropped.MOV
+
+## crop cistomized
+To crop a 80×60 section, starting from position (200, 100):
+$ ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
+
+## split video
+$ ffmpeg -i out.mp4  -ss 0 -t 30 1.mp4
+
+# Observação 1: Tô utilizando uma sequência de imagens próprias a partir de um vídeo. Primeiramente, a conversão foi feita com 30 FPS, a trajetória da câmera ficou totalmente aleatória e sem nexo. Isso se deve ao fato de que com 30 FPS, os movimentos indesejaveis da câmera e consequentemente as features acabam representando movimentos aleatórios para os algortimos. Fiz a conversão com 10 FPS e funcionou excelente!
+
+# Observação 2: Se durante o vídeo forem realizados movimentos bruscos no qual um segmente fique todo borrado, o seguinte erro aparecerá:
+Error terminate called after throwing an instance of 'cv::Exception' what():  OpenCV(4.5.5-dev) /home/matheus-ubuntu/opencv_build/opencv/modules/core/src/matrix.cpp:1175: error: (-13:Image step is wrong) The matrix is not continuous, thus its number of rows can not be changed in function 'reshape'
+# Trata-se da geração de uma matriz descontínua na função findessentialmatrix. Assim, a função recoverPose não consegue ler a matrix e gera o erro.    
