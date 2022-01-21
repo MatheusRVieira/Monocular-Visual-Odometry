@@ -76,15 +76,19 @@ $ mmv a\* b\#1
 $ ffmpeg -i video.mp4 -vf fps=30 %06d.png
 
 - Convert video format
+
 $ ffmpeg -i video.MOV -qscale 0 output.mp4
 
 - change video resolution keeping quality
+
 $ ffmpeg -i input.mp4 -vf scale=1280:720 -preset slow -crf 18 output.mp4
 
 - Crop video (To crop a 80×60 section, starting from position (200, 100))
+
 $ ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
 
 - Split video into parts
+
 $ ffmpeg -i out.mp4  -ss 0 -t 30 1.mp4
 
 ## Observações
