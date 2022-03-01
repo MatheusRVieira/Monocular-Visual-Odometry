@@ -73,7 +73,7 @@ $ mmv a\* b\#1
 
 - Convert video to a image sequence
 
-$ ffmpeg -i video.mp4 -vf fps=30 %06d.png
+$ ffmpeg -i video.MOV -vf fps=10 %06d.png
 
 - Convert video format
 
@@ -87,9 +87,12 @@ $ ffmpeg -i input.mp4 -vf scale=1280:720 -preset slow -crf 18 output.mp4
 
 $ ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
 
-- Split video into parts
+- Split video into parts (0 eh o começo do video em segundos desejado. 30 eh a quantidade de segundos desejada)
 
 $ ffmpeg -i out.mp4  -ss 0 -t 30 1.mp4
+
+- Rotate 90º clockwise (2 = 90CounterClockwise)
+$ ffmpeg -i in.MOV -vf "transpose=1" out.MOV
 
 ## Observações
 - Tô utilizando uma sequência de imagens próprias a partir de um vídeo. Primeiramente, a conversão foi feita com 30 FPS, a trajetória da câmera ficou totalmente aleatória e sem nexo. Isso se deve ao fato de que com 30 FPS, os movimentos indesejaveis da câmera e consequentemente as features acabam representando movimentos aleatórios para os algortimos. Fiz a conversão com 10 FPS e funcionou excelente!

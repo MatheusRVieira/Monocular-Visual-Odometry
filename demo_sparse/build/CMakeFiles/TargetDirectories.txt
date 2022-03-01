@@ -1,0 +1,3 @@
+/home/matheus-ubuntu/Desktop/mono_vo/demo_sparse/build/CMakeFiles/rebuild_cache.dir
+/home/matheus-ubuntu/Desktop/mono_vo/demo_sparse/build/CMakeFiles/edit_cache.dir
+/home/matheus-ubuntu/Desktop/mono_vo/demo_sparse/build/CMakeFiles/sparse.dir
