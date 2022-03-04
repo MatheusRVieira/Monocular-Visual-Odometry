@@ -75,6 +75,10 @@ $ mmv a\* b\#1
 
 $ ffmpeg -i video.MOV -vf fps=10 %06d.png
 
+- Convert video to a image sequence. Se quiser começar a sequencia a partir do 000179
+
+$ ffmpeg -i 2.MOV -vf fps=10 -start_number 000179 %06d.png
+
 - Convert video format
 
 $ ffmpeg -i video.MOV -qscale 0 output.mp4

@@ -12,7 +12,7 @@
 #include <opencv2/opencv.hpp>
 #include <array>
 int iteration = 1;
-int first_image = 1;
+int first_image = 1750;
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -35,7 +35,7 @@ int first_image = 1;
 #define MIN_NUM_FEAT 2000
 
 //const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
- const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/S_curve";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/quadrado_try6";
 const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
@@ -331,61 +331,61 @@ int main(int argc, char** argv) {
     //imshow("Visual Odometry", traj);
     cv::waitKey(1);
 
-    if(numFrame==363){
+    if(numFrame==333){
       t_f=0;
       R_f = R.clone();
       color_red=255; //white
       color_blue=255;
       color_green=255;
-    }else if(numFrame==700){
+    }else if(numFrame==623){
           t_f=0;
           R_f = R.clone();
       color_red=255; //red
       color_blue=0;
       color_green=0;
-    }else if(numFrame==1031){
+    }else if(numFrame==913){
           t_f=0;
           R_f = R.clone();
       color_red=0; //blue
       color_blue=255;
       color_green=0;
     }
-    else if(numFrame==1366){
+    else if(numFrame==1224){
           t_f=0;
           R_f = R.clone();
       color_red=255; //yellow
       color_blue=0;
       color_green=255;
     }
-    else if(numFrame==1707){
+    else if(numFrame==1518){
           t_f=0;
           R_f = R.clone();
       color_red=0; //cyan
       color_blue=255;
       color_green=255;
     }
-    else if(numFrame==2041){
+    else if(numFrame==1821){
           t_f=0;
           R_f = R.clone();
       color_red=0; //magenta
       color_blue=255;
       color_green=0;
     }
-    else if(numFrame==2376){
+    else if(numFrame==2115){
           t_f=0;
           R_f = R.clone();
       color_red=192; //silver
       color_blue=192;
       color_green=192;
     }
-    else if(numFrame==2698){
+    else if(numFrame==3000){
           t_f=0;
           R_f = R.clone();
       color_red=128; //olive
       color_blue=0;
       color_green=128;
     }
-    else if(numFrame==3019){
+    else if(numFrame==30000){
           t_f=0;
           R_f = R.clone();
       color_red=0; //Teal

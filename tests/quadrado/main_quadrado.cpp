@@ -10,9 +10,8 @@
 #include <fstream>
 #include <string>
 #include <opencv2/opencv.hpp>
-#include <array>
-int iteration = 1;
-int first_image = 1;
+int iteration = 0;
+int first_image = 963;
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -24,7 +23,6 @@ int first_image = 1;
  *************************/
 
  using namespace std;
-
  using cv::Mat;
  using cv::Point2f;
  using cv::KeyPoint;
@@ -35,7 +33,7 @@ int first_image = 1;
 #define MIN_NUM_FEAT 2000
 
 //const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
- const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/S_curve";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/quadrado_try5";
 const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
@@ -246,9 +244,9 @@ int main(int argc, char** argv) {
   Mat traj = Mat::zeros(600, 1280, CV_8UC3); //redmi9
   auto groundPoses = getGreyCamGroundPoses(); //groundPoses eh um vetor 2d que recebe a translação em x e z entre cada frame
   auto groundScales = getAbsoluteScales(); //groundScales em um vetor com o deslocamento absoluto entre cada frame
-  int    color_red=0; //Teal
-  int    color_blue=128;
-  int    color_green=128;
+   int   color_red=255; //yellow
+   int   color_blue=0;
+   int   color_green=255;
   // aqui começa de fato o loop
   for(int numFrame=first_image+2; numFrame < MAX_FRAME; numFrame++) {
     cout<<numFrame<<endl; 
@@ -304,6 +302,30 @@ int main(int argc, char** argv) {
     //cout<<"x: "<<x<<" e y: "<<y<<endl;
     //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
     //cor vermelha, com thickness 2
+    if(numFrame==1273){
+          t_f=0;
+      color_red=0; //blue
+      color_blue=255;
+      color_green=0;
+    }
+    else if(numFrame==1585){
+          t_f=0;
+      color_red=255; //red
+      color_blue=0;
+      color_green=0;
+    }
+    else if(numFrame==1895){
+          t_f=0;
+      color_red=0; //silver
+      color_blue=0;
+      color_green=255;
+    }
+    else if(numFrame==2213){
+      t_f=0;
+      color_red=255; //white
+      color_blue=255;
+      color_green=255;
+    }
 
     circle(traj, cv::Point(x, y), 1, CV_RGB(color_red, color_green, color_blue), 2); // traj eh a matriz de zeros que vai ser recebido o desenho
     //em azul, desenhamos o ground truth
@@ -327,78 +349,9 @@ int main(int argc, char** argv) {
     //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
     cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
     //precisa ser o mesmo
-    imshow("Visual Odometry", concated);
-    //imshow("Visual Odometry", traj);
+    //imshow("Visual Odometry", concated);
+    imshow("Visual Odometry", traj);
     cv::waitKey(1);
-
-    if(numFrame==363){
-      t_f=0;
-      R_f = R.clone();
-      color_red=255; //white
-      color_blue=255;
-      color_green=255;
-    }else if(numFrame==700){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //red
-      color_blue=0;
-      color_green=0;
-    }else if(numFrame==1031){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //blue
-      color_blue=255;
-      color_green=0;
-    }
-    else if(numFrame==1366){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //yellow
-      color_blue=0;
-      color_green=255;
-    }
-    else if(numFrame==1707){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //cyan
-      color_blue=255;
-      color_green=255;
-    }
-    else if(numFrame==2041){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //magenta
-      color_blue=255;
-      color_green=0;
-    }
-    else if(numFrame==2376){
-          t_f=0;
-          R_f = R.clone();
-      color_red=192; //silver
-      color_blue=192;
-      color_green=192;
-    }
-    else if(numFrame==2698){
-          t_f=0;
-          R_f = R.clone();
-      color_red=128; //olive
-      color_blue=0;
-      color_green=128;
-    }
-    else if(numFrame==3019){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //Teal
-      color_blue=128;
-      color_green=128;
-    }
-    else if(numFrame==16225){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //yellow
-      color_blue=0;
-      color_green=255;
-    }
   }
 
   clock_t end = clock();
