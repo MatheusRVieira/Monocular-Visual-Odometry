@@ -252,10 +252,6 @@ int main(int argc, char** argv) {
   int    color_green=128;
   // aqui começa de fato o loop
   for(int numFrame=first_image+2; numFrame < MAX_FRAME; numFrame++) {
- //   if(numFrame==363){
- //     numFrame = 374;
- //     continue;
- //   }
     cout<<numFrame<<endl; 
     sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
     // repete-se o mesmo processo anterior
@@ -287,8 +283,9 @@ int main(int argc, char** argv) {
     //This is cheating because ideally you'd want to figure out a way to get scale, but without this cheat there is a lot of drift.
     scale = groundScales[numFrame];
    
+   //serve para corrigir a orientação (rotação inicial)
     if((numFrame>=3 && numFrame<=10) ||(numFrame>=363 && numFrame<=378) || (numFrame>=700 && numFrame<=710) || (numFrame>=1031 && numFrame<=1041) || (numFrame>=1366 && numFrame<=1376) || (numFrame>=1707 && numFrame<=1717) || (numFrame>=2041 && numFrame<=2051) || (numFrame>=2376 && numFrame<=2386) || (numFrame>=2698 && numFrame<=2708) || (numFrame>=3019 && numFrame<=3029)){
-        R_f= R_reference.clone();
+        R_f= R_reference.clone(); //R_reference armazena a orientação inicial do primeiro teste. dessa forma, para os testes seguintes, utilizo esta orientação para os 10 primeiros frames a fim de norteá-los. depois eles seguem por conta própria
   cout<<"R_f antes"<<R_f<<endl;
     }
 

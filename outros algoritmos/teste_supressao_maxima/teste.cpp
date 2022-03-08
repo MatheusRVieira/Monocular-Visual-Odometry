@@ -10,8 +10,7 @@
 #include <fstream>
 #include <string>
 #include <opencv2/opencv.hpp>
-#include <array>
-int first_image = 1;
+
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -23,7 +22,6 @@ int first_image = 1;
  *************************/
 
  using namespace std;
- int iteration = 1;
  using cv::Mat;
  using cv::Point2f;
  using cv::KeyPoint;
@@ -34,7 +32,7 @@ int first_image = 1;
 #define MIN_NUM_FEAT 2000
 
 //const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
- const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/S_curve";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/street";
 const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
@@ -66,7 +64,7 @@ vector<Point2f> getGreyCamGroundPoses() {
 
 }
 
-vector<double> getAbsoluteScales()  {
+vector<double> getAbsoluteScales()	{
 
   vector<double> scales;
   string line;
@@ -121,8 +119,8 @@ vector<double> getAbsoluteScales()  {
    for( int i=0; i<status.size(); i++)
    {
      Point2f pt = points2.at(i- indexCorrection);
-     if ((status.at(i) == 0) || (pt.x<0) || (pt.y<0)) {
-       if((pt.x<0) || (pt.y<0)) {
+     if ((status.at(i) == 0) || (pt.x<0) || (pt.y<0))	{
+       if((pt.x<0) || (pt.y<0))	{
          status.at(i) = 0;
        }
 
@@ -140,7 +138,8 @@ vector<double> getAbsoluteScales()  {
 
   cv::FAST(img, keypoints, fast_threshold, nonmaxSupression);
   KeyPoint::convert(keypoints, points, vector<int>());
-  //cout<<"teste: "<<poin<<endl;
+  cout<<"number of features keypoints" <<keypoints.size()<<endl;
+  cout<<"number of features points" <<points.size()<<endl;
  }
 
 
@@ -158,9 +157,9 @@ int main(int argc, char** argv) {
   double scale = 1.00;
   char filename1[200];
   char filename2[200];
-  sprintf(filename1, "%s/%06d.png", dataset_images_location, first_image);  //fornece o caminho completo pra primeira imagem: .../000000.png
+  sprintf(filename1, "%s/%06d.png", dataset_images_location, 1);  //fornece o caminho completo pra primeira imagem: .../000000.png
   //cout<<"teste: "<<filename1<<endl;
-  sprintf(filename2, "%s/%06d.png", dataset_images_location, first_image+1);  //fornece o caminho completo pra segunda imagem: .../000001.png
+  sprintf(filename2, "%s/%06d.png", dataset_images_location, 2);  //fornece o caminho completo pra segunda imagem: .../000001.png
   //cout<<"teste2: "<<filename2<<endl;
 
   char text[100];
@@ -206,10 +205,10 @@ int main(int argc, char** argv) {
   //double focal = 1081.2352934517869; //redmi9
   //cv::Point2d pp(639.5, 359.5); //redmi9
   double focal = 1220.0899121457219; //iphone
-  cv::Point2d pp(639.5, 359.5); //1280x720 eh a imagem minha
+  cv::Point2d pp(399.5, 179.5); //1280x720 eh a imagem minha
 
   //recovering the pose and the essential matrix
-  Mat E, R, R_reference, t, mask;
+  Mat E, R, t, mask;
   //calcula a matriz essencial(essential for calibrated cameras and fundamental for uncalibrated cameras) dos pontos correspondentes em 2 imagens
   // RANSAC eh o metodo para calcular a matriz fundamental
   //nivel de confiança: 0.999
@@ -217,14 +216,12 @@ int main(int argc, char** argv) {
   //beyond which the point is considered an outlier and is not used for computing the final fundamental matrix.  
   // mask: array com os N points. 0 para outliers e 1 para 'other points'
   E = findEssentialMat(points2, points1, focal, pp, cv::RANSAC, 0.999, 1.0, mask);
-  //cout<<"E_"<<iteration<<": "<<E<<endl;
-  //iteration++;
   //Recovers the relative camera rotation and the translation from an estimated essential matrix and the corresponding points in two images, 
   //using cheirality check. Returns the number of inliers that pass the check. 
   //provides R(output rotation matrix), t(output translation vector)
   //mask is input/output: Only these inliers will be used to recover pose. In the output mask only inliers which pass the cheirality check.
   recoverPose(E, points2, points1, R, t, focal, pp, mask);
-//cout<<"R_"<<iteration<<": "<<R<<endl<<"t_"<<iteration<<": "<<t<<endl;
+
 
   Mat prevImage = img_2;
   Mat currImage;
@@ -234,29 +231,21 @@ int main(int argc, char** argv) {
   char filename[100];
 
   R_f = R.clone();
-  R_reference= R.clone();
   t_f = t.clone();
-  cout<<"R"<<R<<endl;
-    cout<<"R_f"<<R_f<<endl;
+
   clock_t begin = clock();
 
-  cv::namedWindow( "Visual Odometry", cv::WINDOW_NORMAL );// Create a window for display.
-  cv::resizeWindow("Visual Odometry", 600,600); //Serve para poder ajustar o tamanho da visualização
+  cv::namedWindow( "Road facing camera | Top Down Trajectory", cv::WINDOW_NORMAL );// Create a window for display.
+  cv::resizeWindow("Road facing camera | Top Down Trajectory", 600,600); //Serve para poder ajustar o tamanho da visualização
   // create a matrix 600x1241 of zeros
   //Mat traj = Mat::zeros(600, 1241, CV_8UC3); // CV_8UC3: 8-bit unsigned integer matrix with 3 channels, in other words, RGB
-  Mat traj = Mat::zeros(600, 1280, CV_8UC3); //redmi9
+  Mat traj = Mat::zeros(600, 800, CV_8UC3); //redmi9
   auto groundPoses = getGreyCamGroundPoses(); //groundPoses eh um vetor 2d que recebe a translação em x e z entre cada frame
   auto groundScales = getAbsoluteScales(); //groundScales em um vetor com o deslocamento absoluto entre cada frame
-  int    color_red=0; //Teal
-  int    color_blue=128;
-  int    color_green=128;
+
   // aqui começa de fato o loop
-  for(int numFrame=first_image+2; numFrame < MAX_FRAME; numFrame++) {
- //   if(numFrame==363){
- //     numFrame = 374;
- //     continue;
- //   }
-    cout<<numFrame<<endl; 
+  for(int numFrame=3; numFrame < 85; numFrame++) {
+    //cout<<numFrame<<endl; 
     sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
     // repete-se o mesmo processo anterior
     Mat currImage_c = cv::imread(filename); 
@@ -268,11 +257,8 @@ int main(int argc, char** argv) {
     featureTracking(prevImage, currImage, prevFeatures, currFeatures, status);
     E = findEssentialMat(currFeatures, prevFeatures, focal, pp, cv::RANSAC, 0.999, 1.0, mask);
     //if ( ! E.isContinuous() ) continue; //Error terminate called after throwing an instance of 'cv::Exception' what():  OpenCV(4.5.5-dev) /home/matheus-ubuntu/opencv_build/opencv/modules/core/src/matrix.cpp:1175: error: (-13:Image step is wrong) The matrix is not continuous, thus its number of rows can not be changed in function 'reshape'
-    //cout<<"E_"<<iteration<<": "<<E<<endl;
-    //iteration++;
-    recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
     
-    //iteration++;
+    recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
     // aqui ja muda. prevPts eh uma matrix 2 x prevFeatures do tipo 64-bits float 
     Mat prevPts(2, prevFeatures.size(), CV_64F), currPts(2, currFeatures.size(), CV_64F);
 
@@ -286,12 +272,6 @@ int main(int argc, char** argv) {
 
     //This is cheating because ideally you'd want to figure out a way to get scale, but without this cheat there is a lot of drift.
     scale = groundScales[numFrame];
-   
-    if((numFrame>=3 && numFrame<=10) ||(numFrame>=363 && numFrame<=378) || (numFrame>=700 && numFrame<=710) || (numFrame>=1031 && numFrame<=1041) || (numFrame>=1366 && numFrame<=1376) || (numFrame>=1707 && numFrame<=1717) || (numFrame>=2041 && numFrame<=2051) || (numFrame>=2376 && numFrame<=2386) || (numFrame>=2698 && numFrame<=2708) || (numFrame>=3019 && numFrame<=3029)){
-        R_f= R_reference.clone();
-  cout<<"R_f antes"<<R_f<<endl;
-    }
-
 
     //only update the current R and t if it makes sense.
     //if ((scale > 0.1) && (t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1))) {
@@ -300,8 +280,7 @@ int main(int argc, char** argv) {
       R_f = R * R_f;
 
     //}
-    cout<<"R"<<R<<endl;
-    cout<<"R_f depois"<<R_f<<endl;
+
     //Make sure we have enough features to track
     if (prevFeatures.size() < MIN_NUM_FEAT) {
       featureDetection(prevImage, prevFeatures);
@@ -312,12 +291,11 @@ int main(int argc, char** argv) {
     prevFeatures = currFeatures;
 
     int x = int(t_f.at<double>(0)) + 500; //coordenadas do ponto inicial x e y na visualização
-    int y = int(t_f.at<double>(2)) +300;
+    int y = int(t_f.at<double>(2)) +200;
     //cout<<"x: "<<x<<" e y: "<<y<<endl;
     //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
     //cor vermelha, com thickness 2
-
-    circle(traj, cv::Point(x, y), 1, CV_RGB(color_red, color_green, color_blue), 2); // traj eh a matriz de zeros que vai ser recebido o desenho
+    circle(traj, cv::Point(x, y), 1, CV_RGB(255, 0, 0), 2); // traj eh a matriz de zeros que vai ser recebido o desenho
     //em azul, desenhamos o ground truth
     //circle(traj, cv::Point(groundPoses[numFrame].x+200, groundPoses[numFrame].y+100), 1, CV_RGB(0, 0, 255), 2);
 
@@ -339,67 +317,10 @@ int main(int argc, char** argv) {
     //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
     cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
     //precisa ser o mesmo
-    //imshow("Visual Odometry", concated);
-    imshow("Visual Odometry", traj);
+    imshow("Road facing camera | Top Down Trajectory", currImage_c);
+    if(numFrame > 83) imwrite("imagem.jpg", currImage_c);
+    imshow("Road facing camera  Top Down Trajectory", traj);
     cv::waitKey(1);
-
-    if(numFrame==363){
-      t_f=0;
-      color_red=255; //white
-      color_blue=255;
-      color_green=255;
-    }else if(numFrame==700){
-          t_f=0;
-      color_red=255; //red
-      color_blue=0;
-      color_green=0;
-    }else if(numFrame==1031){
-          t_f=0;
-      color_red=0; //blue
-      color_blue=255;
-      color_green=0;
-    }
-    else if(numFrame==1366){
-          t_f=0;
-      color_red=255; //yellow
-      color_blue=0;
-      color_green=255;
-    }
-    else if(numFrame==1707){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //cyan
-      color_blue=255;
-      color_green=255;
-    }
-    else if(numFrame==2041){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //magenta
-      color_blue=255;
-      color_green=0;
-    }
-    else if(numFrame==2376){
-          t_f=0;
-          R_f = R.clone();
-      color_red=192; //silver
-      color_blue=192;
-      color_green=192;
-    }
-    else if(numFrame==2698){
-          t_f=0;
-          R_f = R.clone();
-      color_red=128; //olive
-      color_blue=0;
-      color_green=128;
-    }
-    else if(numFrame==3019){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //Teal
-      color_blue=128;
-      color_green=128;
-    }
   }
 
   clock_t end = clock();

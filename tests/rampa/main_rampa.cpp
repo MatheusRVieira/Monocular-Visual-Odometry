@@ -11,8 +11,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <array>
-int iteration = 1;
-int first_image = 1315;
+int first_image = 1;
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -24,7 +23,7 @@ int first_image = 1315;
  *************************/
 
  using namespace std;
-
+ int iteration = 1;
  using cv::Mat;
  using cv::Point2f;
  using cv::KeyPoint;
@@ -35,7 +34,7 @@ int first_image = 1315;
 #define MIN_NUM_FEAT 2000
 
 //const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
- const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/rampa_9";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/rampa_11";
 const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
@@ -67,7 +66,7 @@ vector<Point2f> getGreyCamGroundPoses() {
 
 }
 
-vector<double> getAbsoluteScales()	{
+vector<double> getAbsoluteScales()  {
 
   vector<double> scales;
   string line;
@@ -122,8 +121,8 @@ vector<double> getAbsoluteScales()	{
    for( int i=0; i<status.size(); i++)
    {
      Point2f pt = points2.at(i- indexCorrection);
-     if ((status.at(i) == 0) || (pt.x<0) || (pt.y<0))	{
-       if((pt.x<0) || (pt.y<0))	{
+     if ((status.at(i) == 0) || (pt.x<0) || (pt.y<0)) {
+       if((pt.x<0) || (pt.y<0)) {
          status.at(i) = 0;
        }
 
@@ -210,7 +209,7 @@ int main(int argc, char** argv) {
   cv::Point2d pp(639.5, 359.5); //1280x720 eh a imagem minha
 
   //recovering the pose and the essential matrix
-  Mat E, R, t, mask;
+  Mat E, R, R_reference, t, mask;
   //calcula a matriz essencial(essential for calibrated cameras and fundamental for uncalibrated cameras) dos pontos correspondentes em 2 imagens
   // RANSAC eh o metodo para calcular a matriz fundamental
   //nivel de confiança: 0.999
@@ -235,8 +234,10 @@ int main(int argc, char** argv) {
   char filename[100];
 
   R_f = R.clone();
+  R_reference= R.clone();
   t_f = t.clone();
-
+  cout<<"R"<<R<<endl;
+    cout<<"R_f"<<R_f<<endl;
   clock_t begin = clock();
 
   cv::namedWindow( "Visual Odometry", cv::WINDOW_NORMAL );// Create a window for display.
@@ -251,6 +252,14 @@ int main(int argc, char** argv) {
   int    color_green=128;
   // aqui começa de fato o loop
   for(int numFrame=first_image+2; numFrame < MAX_FRAME; numFrame++) {
+    if(numFrame==345){ //excluir as sequencias de teste que falharam
+      numFrame = 667;
+      continue;
+    }
+    if(numFrame==825){ //excluir as sequencias de teste que falharam
+      numFrame = 988;
+      continue;
+    }
     cout<<numFrame<<endl; 
     sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
     // repete-se o mesmo processo anterior
@@ -266,8 +275,8 @@ int main(int argc, char** argv) {
     //cout<<"E_"<<iteration<<": "<<E<<endl;
     //iteration++;
     recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
-    //cout<<"R_"<<iteration<<": "<<R<<endl<<"t_"<<iteration<<": "<<t<<endl;
-    iteration++;
+    
+    //iteration++;
     // aqui ja muda. prevPts eh uma matrix 2 x prevFeatures do tipo 64-bits float 
     Mat prevPts(2, prevFeatures.size(), CV_64F), currPts(2, currFeatures.size(), CV_64F);
 
@@ -281,6 +290,12 @@ int main(int argc, char** argv) {
 
     //This is cheating because ideally you'd want to figure out a way to get scale, but without this cheat there is a lot of drift.
     scale = groundScales[numFrame];
+   //serve para corrigir a orientação (rotação inicial)
+    if((numFrame>=3 && numFrame<=10) ||(numFrame>=179 && numFrame<=189) || (numFrame>=345 && numFrame<=355) || (numFrame>=509 && numFrame<=519) || (numFrame>=668 && numFrame<=678) || (numFrame>=825 && numFrame<=835) || (numFrame>=989 && numFrame<=999) || (numFrame>=1152 && numFrame<=1162) || (numFrame>=1307 && numFrame<=1317) || (numFrame>=1472 && numFrame<=1482)){
+        R_f= R_reference.clone();  //R_reference armazena a orientação inicial do primeiro teste. dessa forma, para os testes seguintes, utilizo esta orientação para os 10 primeiros frames a fim de norteá-los. depois eles seguem por conta própria
+  cout<<"R_f antes"<<R_f<<endl;
+    }
+
 
     //only update the current R and t if it makes sense.
     //if ((scale > 0.1) && (t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1))) {
@@ -289,7 +304,8 @@ int main(int argc, char** argv) {
       R_f = R * R_f;
 
     //}
-
+    cout<<"R"<<R<<endl;
+    cout<<"R_f depois"<<R_f<<endl;
     //Make sure we have enough features to track
     if (prevFeatures.size() < MIN_NUM_FEAT) {
       featureDetection(prevImage, prevFeatures);
@@ -327,14 +343,14 @@ int main(int argc, char** argv) {
     //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
     cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
     //precisa ser o mesmo
-    imshow("Visual Odometry", concated);
-    //imshow("Visual Odometry", traj);
+    //imshow("Visual Odometry", concated);
+    imshow("Visual Odometry", traj);
     cv::waitKey(1);
 
-    if(numFrame==179){
+  if(numFrame==179){
       t_f=0;
       R_f = R.clone();
-      color_red=255; //white
+      color_red=0; //cyan
       color_blue=255;
       color_green=255;
     }else if(numFrame==345){
@@ -367,8 +383,8 @@ int main(int argc, char** argv) {
     else if(numFrame==989){
           t_f=0;
           R_f = R.clone();
-      color_red=0; //magenta
-      color_blue=255;
+      color_red=255; //red
+      color_blue=0;
       color_green=0;
     }
     else if(numFrame==1152){
@@ -388,16 +404,9 @@ int main(int argc, char** argv) {
     else if(numFrame==1472){
           t_f=0;
           R_f = R.clone();
-      color_red=0; //Teal
-      color_blue=128;
-      color_green=128;
-    }
-    else if(numFrame==1622){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //yellow
-      color_blue=0;
-      color_green=255;
+      color_red=0; //blue
+      color_blue=255;
+      color_green=0;
     }
   }
 

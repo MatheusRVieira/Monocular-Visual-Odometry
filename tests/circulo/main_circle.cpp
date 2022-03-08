@@ -333,7 +333,7 @@ int main(int argc, char** argv) {
     }
     else if(numFrame==1322){
           t_f=0;
-      color_red=0; //magenta
+      color_red=255; //magenta
       color_blue=255;
       color_green=0;
     }

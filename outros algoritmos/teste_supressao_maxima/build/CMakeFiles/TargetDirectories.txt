@@ -1,0 +1,3 @@
+/home/matheus-ubuntu/Desktop/teste/build/CMakeFiles/rebuild_cache.dir
+/home/matheus-ubuntu/Desktop/teste/build/CMakeFiles/edit_cache.dir
+/home/matheus-ubuntu/Desktop/teste/build/CMakeFiles/teste.dir
