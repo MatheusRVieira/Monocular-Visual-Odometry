@@ -73,7 +73,7 @@ $ mmv a\* b\#1
 
 - Convert video to a image sequence
 
-$ ffmpeg -i video.MOV -vf fps=10 %06d.png
+$ ffmpeg -i IMG_1114.MOV -vf fps=10 %06d.png
 
 - Convert video to a image sequence. Se quiser começar a sequencia a partir do 000179
 
