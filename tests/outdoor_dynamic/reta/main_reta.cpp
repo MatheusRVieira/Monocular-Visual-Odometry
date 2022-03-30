@@ -11,7 +11,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <array>
-int first_image = 85;
+int first_image = 30;
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -34,7 +34,7 @@ int first_image = 85;
 #define MIN_NUM_FEAT 2000
 
 //const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
- const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/uespi_outdoor";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/reta_outdoor";
 const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
@@ -325,8 +325,8 @@ int main(int argc, char** argv) {
     prevImage = currImage.clone();
     prevFeatures = currFeatures;
 
-    int x = int(t_f.at<double>(0))*0.35 + 300; //coordenadas do ponto inicial x e y na visualização
-    int y = int(t_f.at<double>(2))*0.35 +100;
+    int x = int(t_f.at<double>(0))*0.35 + 700; //coordenadas do ponto inicial x e y na visualização
+    int y = int(t_f.at<double>(2))*0.35 +20;
     //cout<<"x: "<<x<<" e y: "<<y<<endl;
     //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
     //cor vermelha, com thickness 2
