@@ -11,7 +11,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <array>
-int first_image = 1;
+int first_image = 70;
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -34,7 +34,7 @@ int first_image = 1;
 #define MIN_NUM_FEAT 2000
 
 //const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
- const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/percurso_final2";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/percurso_final";
 const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
@@ -234,7 +234,7 @@ int main(int argc, char** argv) {
   char filename[100];
 
   R_f = R.clone();
-  //R_reference= R.clone();
+  R_reference= R.clone();
   t_f = t.clone();
   cout<<"R"<<R<<endl;
     cout<<"R_f"<<R_f<<endl;
@@ -264,11 +264,11 @@ int main(int argc, char** argv) {
       numFrame = 783;
       continue;
     }  
-    if(numFrame==317){ //excluir as sequencias de teste que falharam
-      numFrame = 327;
+    if(numFrame==784){ //excluir as sequencias de teste que falharam
+      numFrame = 1026;
       continue;
     }      
-  */
+*/
     cout<<numFrame<<endl; 
     sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
     // repete-se o mesmo processo anterior
@@ -284,7 +284,7 @@ int main(int argc, char** argv) {
     //cout<<"E_"<<iteration<<": "<<E<<endl;
     //iteration++;
     recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
-    if(numFrame==305) R_reference= R.clone();
+    
     //iteration++;
     // aqui ja muda. prevPts eh uma matrix 2 x prevFeatures do tipo 64-bits float 
     Mat prevPts(2, prevFeatures.size(), CV_64F), currPts(2, currFeatures.size(), CV_64F);
@@ -306,13 +306,12 @@ int main(int argc, char** argv) {
   cout<<"R_f antes"<<R_f<<endl;
     }
 */
-    
 
     //only update the current R and t if it makes sense.
     //if ((scale > 0.1) && (t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1))) {
     scale =1;
       t_f = t_f + (R_f * t);
-    if(!(numFrame>=310 && numFrame<=327))   R_f = R * R_f;
+      R_f = R * R_f;
 
     //}
     cout<<"R"<<R<<endl;
@@ -327,7 +326,7 @@ int main(int argc, char** argv) {
     prevFeatures = currFeatures;
 
     int x = int(t_f.at<double>(0))*0.75 + 800; //coordenadas do ponto inicial x e y na visualização
-    int y = int(t_f.at<double>(2))*0.75 + 20;
+    int y = int(t_f.at<double>(2))*0.75 + 100;
     //cout<<"x: "<<x<<" e y: "<<y<<endl;
     //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
     //cor vermelha, com thickness 2
