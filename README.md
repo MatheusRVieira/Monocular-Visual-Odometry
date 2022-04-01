@@ -73,7 +73,7 @@ $ mmv a\* b\#1
 
 - Convert video to a image sequence
 
-$ ffmpeg -i IMG_1114.MOV -vf fps=10 %06d.png
+$ ffmpeg -i PERCURSO_FINAL.MOV -vf fps=10 %06d.png
 
 - Convert video to a image sequence. Se quiser começar a sequencia a partir do 000179
 
@@ -93,7 +93,7 @@ $ ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
 
 - Split video into parts (0 eh o começo do video em segundos desejado. 30 eh a quantidade de segundos desejada)
 
-$ ffmpeg -i out.mp4  -ss 0 -t 30 1.mp4
+$ ffmpeg -i IMG_1325.MOV  -ss 0 -t 30 RETORNO2.MOV
 
 - Rotate 90º clockwise (2 = 90CounterClockwise)
 $ ffmpeg -i in.MOV -vf "transpose=1" out.MOV
