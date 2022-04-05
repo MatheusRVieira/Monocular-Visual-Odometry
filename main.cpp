@@ -11,7 +11,7 @@
 #include <string>
 #include <opencv2/opencv.hpp>
 #include <array>
-int first_image = 1;
+int first_image = 343;
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -30,11 +30,11 @@ int first_image = 1;
  using cv::Size;
  using cv::TermCriteria;
 
-#define MAX_FRAME 15000
+#define MAX_FRAME 7000
 #define MIN_NUM_FEAT 2000
 
 //const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/sequences/00/image_1";
- const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/percurso_final2";
+ const static char* dataset_images_location = "/home/matheus-ubuntu/Desktop/rampa_11";
 const static char* dataset_poses_location = "/home/matheus-ubuntu/Desktop/dataset/poses/01.txt";
 
 
@@ -234,7 +234,7 @@ int main(int argc, char** argv) {
   char filename[100];
 
   R_f = R.clone();
-  //R_reference= R.clone();
+  R_reference= R.clone();
   t_f = t.clone();
   cout<<"R"<<R<<endl;
     cout<<"R_f"<<R_f<<endl;
@@ -252,23 +252,11 @@ int main(int argc, char** argv) {
   int    color_green=128;
   // aqui começa de fato o loop
   for(int numFrame=first_image+2; numFrame < MAX_FRAME; numFrame++) {
- /* if(numFrame==1270){ //excluir as sequencias de teste que falharam
-      numFrame = 1745;
+
+    if(numFrame==825){ //excluir as sequencias de teste que falharam
+      numFrame = 988;
       continue;
     }
-    if(numFrame==2704){ //excluir as sequencias de teste que falharam
-      numFrame = 2943;
-      continue;
-    }
-    if(numFrame==551){ //excluir as sequencias de teste que falharam
-      numFrame = 783;
-      continue;
-    }  
-    if(numFrame==317){ //excluir as sequencias de teste que falharam
-      numFrame = 327;
-      continue;
-    }      
-  */
     cout<<numFrame<<endl; 
     sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
     // repete-se o mesmo processo anterior
@@ -284,7 +272,7 @@ int main(int argc, char** argv) {
     //cout<<"E_"<<iteration<<": "<<E<<endl;
     //iteration++;
     recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
-    if(numFrame==305) R_reference= R.clone();
+    
     //iteration++;
     // aqui ja muda. prevPts eh uma matrix 2 x prevFeatures do tipo 64-bits float 
     Mat prevPts(2, prevFeatures.size(), CV_64F), currPts(2, currFeatures.size(), CV_64F);
@@ -299,20 +287,18 @@ int main(int argc, char** argv) {
 
     //This is cheating because ideally you'd want to figure out a way to get scale, but without this cheat there is a lot of drift.
     scale = groundScales[numFrame];
-   
    //serve para corrigir a orientação (rotação inicial)
-/*    if((numFrame>=1 && numFrame<=10) ||(numFrame>=295 && numFrame<=305) || (numFrame>=551 && numFrame<=561) || (numFrame>=784 && numFrame<=794) || (numFrame>=1027 && numFrame<=1060) || (numFrame>=1270 && numFrame<=1280) || (numFrame>=1511 && numFrame<=1521) || (numFrame>=1746 && numFrame<=1756) || (numFrame>=1982 && numFrame<=1992) || (numFrame>=2215 && numFrame<=2225) || (numFrame>=2456 && numFrame<=2466) || (numFrame>=2704 && numFrame<=2714) || (numFrame>=2944 && numFrame<=2954) || (numFrame>=3201 && numFrame<=3211) || (numFrame>=3440 && numFrame<=3450)){
-        R_f= R_reference.clone(); //R_reference armazena a orientação inicial do primeiro teste. dessa forma, para os testes seguintes, utilizo esta orientação para os 10 primeiros frames a fim de norteá-los. depois eles seguem por conta própria
+    if((numFrame>=3 && numFrame<=10) ||(numFrame>=179 && numFrame<=189) || (numFrame>=345 && numFrame<=355) || (numFrame>=509 && numFrame<=519) || (numFrame>=668 && numFrame<=678) || (numFrame>=825 && numFrame<=835) || (numFrame>=989 && numFrame<=999) || (numFrame>=1152 && numFrame<=1162) || (numFrame>=1307 && numFrame<=1317) || (numFrame>=1472 && numFrame<=1482)){
+        R_f= R_reference.clone();  //R_reference armazena a orientação inicial do primeiro teste. dessa forma, para os testes seguintes, utilizo esta orientação para os 10 primeiros frames a fim de norteá-los. depois eles seguem por conta própria
   cout<<"R_f antes"<<R_f<<endl;
     }
-*/
-    
+
 
     //only update the current R and t if it makes sense.
     //if ((scale > 0.1) && (t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1))) {
     scale =1;
       t_f = t_f + (R_f * t);
-    if(!(numFrame>=310 && numFrame<=327))   R_f = R * R_f;
+      R_f = R * R_f;
 
     //}
     cout<<"R"<<R<<endl;
@@ -326,8 +312,8 @@ int main(int argc, char** argv) {
     prevImage = currImage.clone();
     prevFeatures = currFeatures;
 
-    int x = int(t_f.at<double>(0))*0.75 + 800; //coordenadas do ponto inicial x e y na visualização
-    int y = int(t_f.at<double>(2))*0.75 + 20;
+    int x = int(t_f.at<double>(0)) + 500; //coordenadas do ponto inicial x e y na visualização
+    int y = int(t_f.at<double>(2)) +300;
     //cout<<"x: "<<x<<" e y: "<<y<<endl;
     //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
     //cor vermelha, com thickness 2
@@ -354,103 +340,71 @@ int main(int argc, char** argv) {
     //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
     cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
     //precisa ser o mesmo
-    imshow("Visual Odometry", currImage_c);
-    imshow("Visual Odometry - 1", traj);
+    imshow("Visual Odometry", concated);
+    imshow("Visual Odometry2", traj);
     cv::waitKey(1);
-
-/*    if(numFrame==295){
-      t_f=0;  
-      color_red=255; //white
+  if(numFrame==179){
+      t_f=0;
+      R_f = R.clone();
+      color_red=0; //cyan
       color_blue=255;
       color_green=255;
-    }else if(numFrame==551){
+    }else if(numFrame==345){
           t_f=0;
+          R_f = R.clone();
       color_red=255; //red
       color_blue=0;
       color_green=0;
-    }else if(numFrame==784){
+    }else if(numFrame==509){
           t_f=0;
+          R_f = R.clone();
       color_red=0; //blue
       color_blue=255;
       color_green=0;
     }
-    else if(numFrame==1027){
+    else if(numFrame==668){
           t_f=0;
+          R_f = R.clone();
       color_red=255; //yellow
       color_blue=0;
       color_green=255;
     }
-    else if(numFrame==1270){
+    else if(numFrame==825){
           t_f=0;
           R_f = R.clone();
       color_red=0; //cyan
       color_blue=255;
       color_green=255;
     }
-    else if(numFrame==1511){
+    else if(numFrame==989){
           t_f=0;
           R_f = R.clone();
-      color_red=255; //magenta
-      color_blue=255;
+      color_red=255; //red
+      color_blue=0;
       color_green=0;
     }
-    else if(numFrame==1746){
+    else if(numFrame==1152){
           t_f=0;
           R_f = R.clone();
       color_red=192; //silver
       color_blue=192;
       color_green=192;
     }
-    else if(numFrame==1982){
+    else if(numFrame==1307){
           t_f=0;
           R_f = R.clone();
       color_red=128; //olive
       color_blue=0;
       color_green=128;
     }
-    else if(numFrame==2215){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //cyan
-      color_blue=255;
-      color_green=255;
-    }
-        else if(numFrame==2456){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //magenta
-      color_blue=255;
-      color_green=0;
-    }
-        else if(numFrame==2704){
+    else if(numFrame==1472){
           t_f=0;
           R_f = R.clone();
       color_red=0; //blue
       color_blue=255;
       color_green=0;
     }
-        else if(numFrame==2944){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //red
-      color_blue=0;
-      color_green=0;
-    }
-        else if(numFrame==3201){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //blue
-      color_blue=255;
-      color_green=0;
-    }
-            else if(numFrame==3440){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //white
-      color_blue=255;
-      color_green=255;
-    }
- */ }
+  }
 
   clock_t end = clock();
   double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
