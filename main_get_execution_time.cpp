@@ -12,6 +12,7 @@
 #include <opencv2/opencv.hpp>
 #include <array>
 int first_image = 30;
+
 /**
  ***************** Algorithm Outline
     1. Capture images: It, It+1,
@@ -23,7 +24,12 @@ int first_image = 30;
  *************************/
 
  using namespace std;
+ using namespace std::chrono;
  int iteration = 1;
+ int acc = 0;
+ int smallest_numb = 131613491;
+ int biggest_numb = 0;
+ double avarage_time = 0;
  using cv::Mat;
  using cv::Point2f;
  using cv::KeyPoint;
@@ -247,33 +253,16 @@ int main(int argc, char** argv) {
   Mat traj = Mat::zeros(600, 1280, CV_8UC3); //redmi9
   auto groundPoses = getGreyCamGroundPoses(); //groundPoses eh um vetor 2d que recebe a translação em x e z entre cada frame
   auto groundScales = getAbsoluteScales(); //groundScales em um vetor com o deslocamento absoluto entre cada frame
-  int    color_red=0; //Teal
-  int    color_blue=128;
-  int    color_green=128;
+
   // aqui começa de fato o loop
   for(int numFrame=first_image+2; numFrame < MAX_FRAME; numFrame++) {
- /* if(numFrame==1270){ //excluir as sequencias de teste que falharam
-      numFrame = 1745;
-      continue;
-    }
-    if(numFrame==2704){ //excluir as sequencias de teste que falharam
-      numFrame = 2943;
-      continue;
-    }
-    if(numFrame==551){ //excluir as sequencias de teste que falharam
-      numFrame = 783;
-      continue;
-    }  
-    if(numFrame==784){ //excluir as sequencias de teste que falharam
-      numFrame = 1026;
-      continue;
-    }      
-*/
-    cout<<numFrame<<endl; 
+    auto start = high_resolution_clock::now();
+
+    //cout<<numFrame<<endl; 
     sprintf(filename, "%s/%06d.png", dataset_images_location, numFrame); //filename recebe o endereço do frame 2 até o frame 2000
     // repete-se o mesmo processo anterior
     Mat currImage_c = cv::imread(filename); 
-    if (currImage_c.empty()) continue;
+    //if (currImage_c.empty()) continue;
     cvtColor(currImage_c, currImage, cv::COLOR_BGR2GRAY);
     //cv::imwrite(filename, currImage);
     //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
@@ -286,7 +275,6 @@ int main(int argc, char** argv) {
     recoverPose(E, currFeatures, prevFeatures, R, t, focal, pp, mask);
     
     //iteration++;
-    // aqui ja muda. prevPts eh uma matrix 2 x prevFeatures do tipo 64-bits float 
     Mat prevPts(2, prevFeatures.size(), CV_64F), currPts(2, currFeatures.size(), CV_64F);
 
     for (int i = 0; i < prevFeatures.size(); i++) {   //this (x,y) combination makes sense as observed from the source code of triangulatePoints on GitHub
@@ -298,7 +286,6 @@ int main(int argc, char** argv) {
     }
 
     //This is cheating because ideally you'd want to figure out a way to get scale, but without this cheat there is a lot of drift.
-    scale = groundScales[numFrame];
    
    //serve para corrigir a orientação (rotação inicial)
 /*    if((numFrame>=1 && numFrame<=10) ||(numFrame>=295 && numFrame<=305) || (numFrame>=551 && numFrame<=561) || (numFrame>=784 && numFrame<=794) || (numFrame>=1027 && numFrame<=1060) || (numFrame>=1270 && numFrame<=1280) || (numFrame>=1511 && numFrame<=1521) || (numFrame>=1746 && numFrame<=1756) || (numFrame>=1982 && numFrame<=1992) || (numFrame>=2215 && numFrame<=2225) || (numFrame>=2456 && numFrame<=2466) || (numFrame>=2704 && numFrame<=2714) || (numFrame>=2944 && numFrame<=2954) || (numFrame>=3201 && numFrame<=3211) || (numFrame>=3440 && numFrame<=3450)){
@@ -309,13 +296,10 @@ int main(int argc, char** argv) {
 
     //only update the current R and t if it makes sense.
     //if ((scale > 0.1) && (t.at<double>(2) > t.at<double>(0)) && (t.at<double>(2) > t.at<double>(1))) {
-    scale =1;
       t_f = t_f + (R_f * t);
       R_f = R * R_f;
 
     //}
-    cout<<"R"<<R<<endl;
-    cout<<"R_f depois"<<R_f<<endl;
     //Make sure we have enough features to track
     if (prevFeatures.size() < MIN_NUM_FEAT) {
       featureDetection(prevImage, prevFeatures);
@@ -331,125 +315,39 @@ int main(int argc, char** argv) {
     //desenha um circulo em uma imagem. x e y são as coordenadas do centro do circulo. 1 eh o raio do circulo
     //cor vermelha, com thickness 2
 
-    circle(traj, cv::Point(x, y), 1, CV_RGB(color_red, color_green, color_blue), 2); // traj eh a matriz de zeros que vai ser recebido o desenho
+    //circle(traj, cv::Point(x, y), 1, CV_RGB(color_red, color_green, color_blue), 2); // traj eh a matriz de zeros que vai ser recebido o desenho
     //em azul, desenhamos o ground truth
     //circle(traj, cv::Point(groundPoses[numFrame].x+200, groundPoses[numFrame].y+100), 1, CV_RGB(0, 0, 255), 2);
 
     //aqui expressamos as coordendas da translação em x, y e z
-    rectangle(traj, cv::Point(10, 30), cv::Point(550, 50), CV_RGB(0, 0, 0), cv::FILLED);
-    sprintf(text, "Coordinates: x = %02fm y = %02fm z = %02fm", t_f.at<double>(0), t_f.at<double>(1),t_f.at<double>(2));
-    putText(traj, text, textOrg, fontFace, fontScale, cv::Scalar::all(255), thickness, 8);
+    //rectangle(traj, cv::Point(10, 30), cv::Point(550, 50), CV_RGB(0, 0, 0), cv::FILLED);
+    //sprintf(text, "Coordinates: x = %02fm y = %02fm z = %02fm", t_f.at<double>(0), t_f.at<double>(1),t_f.at<double>(2));
+    //putText(traj, text, textOrg, fontFace, fontScale, cv::Scalar::all(255), thickness, 8);
 
-    if (renderFeatures){
+    //if (renderFeatures){
       //Draw features as markers for fun
-      for(auto point: currFeatures)
-        cv::drawMarker(currImage_c, cv::Point(point.x,point.y), CV_RGB(0,255,0), cv::MARKER_TILTED_CROSS, 2, 1, cv::LINE_AA);
-    }
+    //  for(auto point: currFeatures)
+    //    cv::drawMarker(currImage_c, cv::Point(point.x,point.y), CV_RGB(0,255,0), cv::MARKER_TILTED_CROSS, 2, 1, cv::LINE_AA);
+    //}
 
-    Mat concated;
-    //cout<<"currImage_c: "<<currImage_c.size()<<endl;
-    //cout<<"traj: "<<traj.size()<<endl;
-    //cout<<"concated: "<<currImage_c.size()<<endl;
-    //cout<< "com cor: "<<currImage_c.size()<<" gray: "<<currImage.size()<<endl;
-    cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
+    //Mat concated;
+    //cv::vconcat(currImage_c, traj, concated); //concatena verticalmente as matrizes currImage_c e traj. Obs.: o numero de colunas 
     //precisa ser o mesmo
-    imshow("Visual Odometry", currImage_c);
-    imshow("Visual Odometry - 1", traj);
+    //imshow("Visual Odometry", concated);
     cv::waitKey(1);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    int duration_int = duration.count();
+    if(duration_int<smallest_numb) smallest_numb = duration_int;
+    if(duration_int>biggest_numb) biggest_numb = duration_int;
+    acc += duration_int;
+    avarage_time = (double)acc/iteration;
+    iteration++;
+    cout << "smallest_numb: " << smallest_numb << " us" << endl;
+    cout << "biggest_numb: " << biggest_numb << " us" << endl;
+    cout << "avarage_time: " << avarage_time << " us" << endl;
 
-/*    if(numFrame==295){
-      t_f=0;  
-      color_red=255; //white
-      color_blue=255;
-      color_green=255;
-    }else if(numFrame==551){
-          t_f=0;
-      color_red=255; //red
-      color_blue=0;
-      color_green=0;
-    }else if(numFrame==784){
-          t_f=0;
-      color_red=0; //blue
-      color_blue=255;
-      color_green=0;
-    }
-    else if(numFrame==1027){
-          t_f=0;
-      color_red=255; //yellow
-      color_blue=0;
-      color_green=255;
-    }
-    else if(numFrame==1270){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //cyan
-      color_blue=255;
-      color_green=255;
-    }
-    else if(numFrame==1511){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //magenta
-      color_blue=255;
-      color_green=0;
-    }
-    else if(numFrame==1746){
-          t_f=0;
-          R_f = R.clone();
-      color_red=192; //silver
-      color_blue=192;
-      color_green=192;
-    }
-    else if(numFrame==1982){
-          t_f=0;
-          R_f = R.clone();
-      color_red=128; //olive
-      color_blue=0;
-      color_green=128;
-    }
-    else if(numFrame==2215){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //cyan
-      color_blue=255;
-      color_green=255;
-    }
-        else if(numFrame==2456){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //magenta
-      color_blue=255;
-      color_green=0;
-    }
-        else if(numFrame==2704){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //blue
-      color_blue=255;
-      color_green=0;
-    }
-        else if(numFrame==2944){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //red
-      color_blue=0;
-      color_green=0;
-    }
-        else if(numFrame==3201){
-          t_f=0;
-          R_f = R.clone();
-      color_red=0; //blue
-      color_blue=255;
-      color_green=0;
-    }
-            else if(numFrame==3440){
-          t_f=0;
-          R_f = R.clone();
-      color_red=255; //white
-      color_blue=255;
-      color_green=255;
-    }
- */ }
+}
 
   clock_t end = clock();
   double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
