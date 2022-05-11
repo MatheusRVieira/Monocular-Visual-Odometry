@@ -20,7 +20,7 @@
 - To see the FAST features visualized
 1. `./mono_vo viz`
 
-## Notes
+### Notes
 - A sequence of frames is required. I recorded a video from my cellphone. So, I converted it into a sequence of frames using FFMPEG (use 10 FPS. 30 FPS doesn't work properly). The first frame must be labeled "000000.png".
 
 - Movements during trajectory must be as smooth as possible. Sharp moviments may cause the following error:
@@ -29,7 +29,7 @@
 
 - There is no scale, so there's a lot of drift.  
 
-## Sequence of frames tested
+### Sequence of frames tested
 -   Available in: https://drive.google.com/drive/folders/1uidBfJyigr88HjftKUeokp6WbgFuATx2?usp=sharing
 - Drive account:
 
@@ -49,7 +49,7 @@
 4. Trajetória 4
 5. Trajetória 5
 
-## Other codes (directory \other_codes)
+### Other codes (directory \other_codes)
 1. camera_calibration: used to calibrate camera and and extract camera parameters
 2. CvtGrayNSave: convert images to grayscale and convert. (just for fun)
 3. demo_dense: test dense optical flow (just for fun)
@@ -58,7 +58,7 @@
 6. undistort_images: undistort frames, but didn't work. Actually, frame got worse
 7. tests: codes used in each test from ambiente controlado and ambiente não controlado
 
-## Useful features using FFMPEG In UBUNTU
+### Useful features using FFMPEG In UBUNTU
 
 - Convert video to a image sequence (I used it to convert all videos into a sequence of frames)
 
