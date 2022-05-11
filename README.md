@@ -1,25 +1,23 @@
 
 # Monocular visual Odometry C++
 
-0. Build trajectory from a sequence of frames. 
-1. Based on Mez algorithm (https://github.com/mez/monocular-visual-odometry)
-2. Developed by Matheus Ribeiro (matheusrbv99@gmail.com). 
-3. Related paper: Estimação de posição e orientação de câmeras inteligentes (available in PDF in this GIT)
+- Build trajectory from a sequence of frames. 
+- Based on Mez algorithm (https://github.com/mez/monocular-visual-odometry)
+- Developed by Matheus Ribeiro (matheusrbv99@gmail.com). 
+- Related paper: Estimação de posição e orientação de câmeras inteligentes (available in PDF in this GIT)
 
 ## Building and running
-1. OpenCV and OpenCV contrib must be installed: https://linuxize.com/post/how-to-install-opencv-on-ubuntu-20-04/
-2. CMake must be installed. 
+- OpenCV and OpenCV contrib must be installed: https://linuxize.com/post/how-to-install-opencv-on-ubuntu-20-04/
+- CMake must be installed. 
+- Only required files: main.cpp and CMakeLists.txt (both available in GIT. build folder must be deleted in the first use). 
 
-1. Only required files: main.cpp and CMakeLists.txt (both available in GIT. build folder must be deleted in the first use). 
-2. In directory /mono_vo:
-3. `mkdir build && cd build`
-4. `cmake ..`
-5. `make`
-6. ./mono_vo
+- In directory /mono_vo:
+1. `mkdir build && cd build`
+2. `cmake ..`
+3. `make`
+4. `./mono_vo`
 
-## FAST features Visualized
-
-To see the FAST features visualized
+- To see the FAST features visualized
 1. `./mono_vo viz`
 
 ## Notes
@@ -32,18 +30,19 @@ To see the FAST features visualized
 - There is no scale, so there's a lot of drift.  
 
 ## Sequence of frames tested
--Available in: https://drive.google.com/drive/folders/1uidBfJyigr88HjftKUeokp6WbgFuATx2?usp=sharing
--Drive account
-1. datasetunb@gmail.com
-2. password: dataset123
+-   Available in: https://drive.google.com/drive/folders/1uidBfJyigr88HjftKUeokp6WbgFuATx2?usp=sharing
+- Drive account:
 
--Ambiente controlado
+*datasetunb@gmail.com*
+*password: dataset123*
+
+- Ambiente controlado
 1. Trajetoria 1: Circulo
 2. Trajetoria 2: Quadrado
 3. Trajetória 3: Angulos de 45º
 4. Trajetória 4: Semi-círculos
 
--Ambiente não controlado
+- Ambiente não controlado
 1. Trajetória 1: reta
 2. Trajetória 2: curvas
 3. Trajetória 3: Retorno acentuado
@@ -63,44 +62,44 @@ To see the FAST features visualized
 
 - Convert video to a image sequence (I used it to convert all videos into a sequence of frames)
 
-$ ffmpeg -i PERCURSO_FINAL.MOV -vf fps=10 %06d.png
+`ffmpeg -i PERCURSO_FINAL.MOV -vf fps=10 %06d.png` 
 
 - Convert video to a image sequence starting from 000179
 
-$ ffmpeg -i 2.MOV -vf fps=10 -start_number 000179 %06d.png
+`ffmpeg -i 2.MOV -vf fps=10 -start_number 000179 %06d.png`
 
 - Convert video format
 
-$ ffmpeg -i video.MOV -qscale 0 output.mp4
+`ffmpeg -i video.MOV -qscale 0 output.mp4`
 
 - change video resolution keeping quality
 
-$ ffmpeg -i input.mp4 -vf scale=1280:720 -preset slow -crf 18 output.mp4
+`ffmpeg -i input.mp4 -vf scale=1280:720 -preset slow -crf 18 output.mp4`
 
 - Crop video (To crop a 80×60 section, starting from position (200, 100))
 
-$ ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
+`ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4`
 
 - Split video into parts (0: video being (sec); 30: amount (sec))
 
-$ ffmpeg -i IMG_1325.MOV  -ss 0 -t 30 RETORNO2.MOV
+`ffmpeg -i IMG_1325.MOV  -ss 0 -t 30 RETORNO2.MOV`
 
 - Rotate 90º clockwise (2 = 90CounterClockwise)
-$ ffmpeg -i in.MOV -vf "transpose=1" out.MOV
+`ffmpeg -i in.MOV -vf "transpose=1" out.MOV`
 
 - Rename multiple files (a is the old prefix to be replaced, b is the new replacement)
-$ mmv a\* b\#1
+`mmv a\* b\#1`
 
 ## How to use git
 
-$ git status
-$ git add -A
-$ git commit -m "write something"
-$ git push
+`git status`
+`git add -A`
+`git commit -m "write something"`
+`git push`
 
 - How to create a new repo
-$ cd /directory/you/want
-$ cd git init
-$ git commit -m "write something"
-$ git remote add origin https... 
-$ git push -u origin master
+`cd /directory/you/want`
+`cd git init`
+`git commit -m "write something"`
+`git remote add origin https... `
+`git push -u origin master`
