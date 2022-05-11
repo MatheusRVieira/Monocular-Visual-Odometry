@@ -1,81 +1,71 @@
 
 # Monocular visual Odometry C++
 
-<p align="center">
-  <img src="doc/monovo.png" height="600px"/>
-</p>
+0. Build trajectory from a sequence of frames. 
+1. Based on Mez algorithm (https://github.com/mez/monocular-visual-odometry)
+2. Developed by Matheus Ribeiro (matheusrbv99@gmail.com). 
+3. Related paper: Estimação de posição e orientação de câmeras inteligentes (available in PDF in this GIT)
 
+## Building and running
+1. OpenCV and OpenCV contrib must be installed: https://linuxize.com/post/how-to-install-opencv-on-ubuntu-20-04/
+2. CMake must be installed. 
 
-This is a simple implementation that mostly uses OpenCV. However, I plan to replace major components
-with different ideas, like using Deep Learning for features etc. Stay tuned and feel free to ask
-me with any questions that you might have.
-
-
-## Current algo is as follows
-
-```
-    1. Capture images: It, It+1,
-    2. Undistort the above images. (using kitti so this step is done for you!)
-    3. Use FAST algorithm to detect features in It, and track those features to It+1. A new detection is triggered if the number of features drop below a certain threshold.
-    4. Use Nister’s 5-point alogirthm with RANSAC to compute the essential matrix.
-    5. Estimate R,t from the essential matrix that was computed in the previous step.
-    6. Take scale information from some external source (like a speedometer), and concatenate the translation vectors, and rotation matrices.
-
-```
-
-
-
-## Deps
-
-1. OpenCV 3
-2. cmake 3.1 or greater
-
-## Dataset (Kitti Odometry: http://www.cvlibs.net/datasets/kitti/eval_odometry.php)
-
-1. Grab the grayscale
-2. ground truth poses
-
-
-## Building and Running
-1. clone this repo
-2. `mkdir build && cd build`
-3. `cmake ..`
-4. `make`
-5. ./mono_vo
+1. Only required files: main.cpp and CMakeLists.txt (both available in GIT. build folder must be deleted in the first use). 
+2. In directory /mono_vo:
+3. `mkdir build && cd build`
+4. `cmake ..`
+5. `make`
+6. ./mono_vo
 
 ## FAST features Visualized
 
 To see the FAST features visualized
 1. `./mono_vo viz`
 
-<p align="center">
-  <img src="doc/FASTfeatures.png" width="750px" height="300px"/>
-</p>
+## Notes
+- A sequence of frames is required. I recorded a video from my cellphone. So, I converted it into a sequence of frames using FFMPEG (use 10 FPS. 30 FPS doesn't work properly). The first frame must be labeled "000000.png".
 
+- Movements during trajectory must be as smooth as possible. Sharp moviments may cause the following error:
 
-## TODOs
+*Error terminate called after throwing an instance of 'cv::Exception' what():  OpenCV(4.5.5-dev) /home/matheus-ubuntu/opencv_build/opencv/modules/core/src/matrix.cpp:1175: error: (-13:Image step is wrong) The matrix is not continuous, thus its number of rows can not be changed in function 'reshape'*    
 
-1. fix to work with any given sequence in the kitti dataset.
-2. figure out a better way to estimate scale (perhaps use lidar!)
-3. better document the code
-4. DRY the code up.
+- There is no scale, so there's a lot of drift.  
 
-## Credit
-Major S/O to a blog http://avisingh599.github.io/vision/monocular-vo/ that gave the inspiration and a good starting point. Go read his blog to get a better understanding of the basics. :)
+## Sequence of frames tested
+-Available in: https://drive.google.com/drive/folders/1uidBfJyigr88HjftKUeokp6WbgFuATx2?usp=sharing
+-Drive account
+1. datasetunb@gmail.com
+2. password: dataset123
 
+-Ambiente controlado
+1. Trajetoria 1: Circulo
+2. Trajetoria 2: Quadrado
+3. Trajetória 3: Angulos de 45º
+4. Trajetória 4: Semi-círculos
 
-## Matheus Ribero (matheusrbv99@gmail.com)
+-Ambiente não controlado
+1. Trajetória 1: reta
+2. Trajetória 2: curvas
+3. Trajetória 3: Retorno acentuado
+4. Trajetória 4
+5. Trajetória 5
 
-## how to rename multiple files (a is the old prefix to be replaced, b is the new replacement)
-$ mmv a\* b\#1
+## Other codes (directory \other_codes)
+1. camera_calibration: used to calibrate camera and and extract camera parameters
+2. CvtGrayNSave: convert images to grayscale and convert. (just for fun)
+3. demo_dense: test dense optical flow (just for fun)
+4. demo_sparse: test sparse optical flow (just for fun)
+5. get_execution_time: get OV system execution time
+6. undistort_images: undistort frames, but didn't work. Actually, frame got worse
+7. tests: codes used in each test from ambiente controlado and ambiente não controlado
 
 ## Useful features using FFMPEG In UBUNTU
 
-- Convert video to a image sequence
+- Convert video to a image sequence (I used it to convert all videos into a sequence of frames)
 
 $ ffmpeg -i PERCURSO_FINAL.MOV -vf fps=10 %06d.png
 
-- Convert video to a image sequence. Se quiser começar a sequencia a partir do 000179
+- Convert video to a image sequence starting from 000179
 
 $ ffmpeg -i 2.MOV -vf fps=10 -start_number 000179 %06d.png
 
@@ -91,23 +81,26 @@ $ ffmpeg -i input.mp4 -vf scale=1280:720 -preset slow -crf 18 output.mp4
 
 $ ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
 
-- Split video into parts (0 eh o começo do video em segundos desejado. 30 eh a quantidade de segundos desejada)
+- Split video into parts (0: video being (sec); 30: amount (sec))
 
 $ ffmpeg -i IMG_1325.MOV  -ss 0 -t 30 RETORNO2.MOV
 
 - Rotate 90º clockwise (2 = 90CounterClockwise)
 $ ffmpeg -i in.MOV -vf "transpose=1" out.MOV
 
-## Observações
-- Tô utilizando uma sequência de imagens próprias a partir de um vídeo. Primeiramente, a conversão foi feita com 30 FPS, a trajetória da câmera ficou totalmente aleatória e sem nexo. Isso se deve ao fato de que com 30 FPS, os movimentos indesejaveis da câmera e consequentemente as features acabam representando movimentos aleatórios para os algortimos. Fiz a conversão com 10 FPS e funcionou excelente!
+- Rename multiple files (a is the old prefix to be replaced, b is the new replacement)
+$ mmv a\* b\#1
 
-- Se durante o vídeo forem realizados movimentos bruscos no qual um segmente fique todo borrado, o seguinte erro aparecerá:
+## How to use git
 
-*Error terminate called after throwing an instance of 'cv::Exception' what():  OpenCV(4.5.5-dev) /home/matheus-ubuntu/opencv_build/opencv/modules/core/src/matrix.cpp:1175: error: (-13:Image step is wrong) The matrix is not continuous, thus its number of rows can not be changed in function 'reshape'
-Trata-se da geração de uma matriz descontínua na função findessentialmatrix. Assim, a função recoverPose não consegue ler a matrix e gera o erro.*    
+$ git status
+$ git add -A
+$ git commit -m "write something"
+$ git push
 
-- A execução do algoritmo ficará lenta quanto mais for o tamanho da imagem em pixels (não necessariamente em megas) e quanto mais features forem detectadas em um segmento de imagens 
-
-
-## Next steps: 
-- [ ] undistorted images from calibration data
+- How to create a new repo
+$ cd /directory/you/want
+$ cd git init
+$ git commit -m "write something"
+$ git remote add origin https... 
+$ git push -u origin master

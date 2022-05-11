@@ -1,3 +1,0 @@
-/home/matheus-ubuntu/Desktop/undistort_images/build/CMakeFiles/edit_cache.dir
-/home/matheus-ubuntu/Desktop/undistort_images/build/CMakeFiles/rebuild_cache.dir
-/home/matheus-ubuntu/Desktop/undistort_images/build/CMakeFiles/undistort.dir

@@ -1,3 +1,0 @@
-/home/matheus-ubuntu/Desktop/camera_calibration/build/CMakeFiles/rebuild_cache.dir
-/home/matheus-ubuntu/Desktop/camera_calibration/build/CMakeFiles/edit_cache.dir
-/home/matheus-ubuntu/Desktop/camera_calibration/build/CMakeFiles/camera_calibration.dir
