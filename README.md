@@ -85,21 +85,23 @@
 `ffmpeg -i IMG_1325.MOV  -ss 0 -t 30 RETORNO2.MOV`
 
 - Rotate 90º clockwise (2 = 90CounterClockwise)
+
 `ffmpeg -i in.MOV -vf "transpose=1" out.MOV`
 
 - Rename multiple files (a is the old prefix to be replaced, b is the new replacement)
+
 `mmv a\* b\#1`
 
-## How to use git
+### How to use git
 
-`git status`
-`git add -A`
-`git commit -m "write something"`
-`git push`
+1. `git status`
+2. `git add -A`
+3. `git commit -m "write something"`
+4. `git push`
 
 - How to create a new repo
-`cd /directory/you/want`
-`cd git init`
-`git commit -m "write something"`
-`git remote add origin https... `
-`git push -u origin master`
+1. `cd /directory/you/want`
+2. `cd git init`
+3. `git commit -m "write something"`
+4. `git remote add origin https... `
+5. `git push -u origin master`
