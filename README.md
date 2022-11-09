@@ -31,10 +31,7 @@
 
 ### Sequence of frames tested
 -   Available in: https://drive.google.com/drive/folders/1uidBfJyigr88HjftKUeokp6WbgFuATx2?usp=sharing
-- Drive account:
 
-*datasetunb@gmail.com*
-*password: dataset123*
 
 - Ambiente controlado
 1. Trajetoria 1: Circulo
