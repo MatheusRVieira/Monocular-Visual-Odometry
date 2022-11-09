@@ -88,17 +88,3 @@
 - Rename multiple files (a is the old prefix to be replaced, b is the new replacement)
 
 `mmv a\* b\#1`
-
-### How to use git
-
-1. `git status`
-2. `git add -A`
-3. `git commit -m "write something"`
-4. `git push`
-
-- How to create a new repo
-1. `cd /directory/you/want`
-2. `cd git init`
-3. `git commit -m "write something"`
-4. `git remote add origin https... `
-5. `git push -u origin master`
