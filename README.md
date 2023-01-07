@@ -1,9 +1,17 @@
+- This is a Mecathronics degree final project at University of Brasilia: Position and orientation estimation of smart cameras.
+- Keywords: Monocular Visual Odometry; Mono VO; Trajectory estimation; movement estimantion
 
 # Monocular visual Odometry C++
 
-- Build trajectory from a sequence of frames. 
+- This project builds a trajectory from a sequence of frames. 
+  Briefly:
+  1. Record a video from your cellphone.
+  2. Convert it into a sequence of frames using FFMPEG tool.
+  3. Modify the main code with your camera settings
+  4. Build the algorthm
+  5. Run it and you'll be seeing the trajectory been constructed in real time
 - Based on Mez algorithm (https://github.com/mez/monocular-visual-odometry)
-- Developed by Matheus Ribeiro (matheusrbv99@gmail.com). 
+- Developed by Matheus Ribeiro (matheusrbv99@gmail.com). Any question, feel free to send me an email.
 - Related paper: Estimação de posição e orientação de câmeras inteligentes (available in PDF in this GIT)
 
 ## Building and running
